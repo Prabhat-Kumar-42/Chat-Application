@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
-import { verifyJwt } from "../util/jwt-auth.util";
-import { prisma } from "../db/db";
+import { verifyJwt } from "../util/jwt-auth.util.js";
+import { prisma } from "../db/db.js";
 
 const onlineUsers = new Map<string, string>(); // userId -> socketId
 

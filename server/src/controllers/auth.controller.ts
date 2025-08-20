@@ -1,9 +1,9 @@
 import bcrypt from "bcrypt";
-import { prisma } from "../db/db";
-import { signJwt } from "../util/jwt-auth.util";
+import { prisma } from "../db/db.js";
+import { signJwt } from "../util/jwt-auth.util.js";
 import { Request, Response } from "express";
-import { userToDto } from "../dtos/users.dto";
-import { registerSchema } from "../validations/user.validation";
+import { userToDto } from "../dtos/users.dto.js";
+import { loginSchema, registerSchema } from "../validations/user.validation.js";
 import z from "zod";
 
 export const registerHandler = async (req: Request, res: Response) => {
@@ -36,7 +36,7 @@ export const registerHandler = async (req: Request, res: Response) => {
 
 export const loginHandler = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body as { email: string; password: string };
+    const { email, password } = loginSchema.parse(req.body);
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
     const ok = await bcrypt.compare(password, user.passwordHash);

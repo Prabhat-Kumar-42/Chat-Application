@@ -2,11 +2,11 @@ import "dotenv/config";
 import express from "express";
 import http from "http";
 import cors from "cors";
-import { authRouter } from "./routes/auth.route";
-import { usersRouter } from "./routes/users.route";
-import { convRouter } from "./routes/conversations.route";
-import { initSocket } from "../src/socket/socket";
-import { isAuthenticated} from "./middlewares/auth.middleware";
+import { authRouter } from "./routes/auth.route.js";
+import { usersRouter } from "./routes/users.route.js";
+import { convRouter } from "./routes/conversations.route.js";
+import { initSocket } from "../src/socket/socket.js";
+import { isAuthenticated} from "./middlewares/auth.middleware.js";
 
 const app = express();
 app.use(cors({ origin: process.env.CLIENT_ORIGIN?.split(",") || "*" }));

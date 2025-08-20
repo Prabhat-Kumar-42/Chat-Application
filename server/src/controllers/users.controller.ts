@@ -1,7 +1,7 @@
 import { Response } from "express";
-import { prisma } from "../db/db";
-import { AuthRequest } from "../types/auth-request.type";
-import { userToDto } from "../dtos/users.dto";
+import { prisma } from "../db/db.js";
+import { AuthRequest } from "../types/auth-request.type.js";
+import { userToDto } from "../dtos/users.dto.js";
 import z from "zod";
 
 export const getUsersHandler = async (req: AuthRequest, res: Response) => {

@@ -1,6 +1,5 @@
 import { Router } from "express";
-import { prisma } from "../db/db";
-import { getUsersHandler } from "../controllers/users.controller";
+import { getUsersHandler } from "../controllers/users.controller.js";
 
 export const usersRouter = Router();
 

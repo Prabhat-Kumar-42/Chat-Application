@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getMessagesHandler } from "../controllers/conversations.controller";
+import { getMessagesHandler } from "../controllers/conversations.controller.js";
 
 export const convRouter = Router();
 

@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "seed": "ts-node prisma/seed.ts"
+    "build": "pnpm tsc",
+    "prisma_generate": "pnpm prisma generate",
+    "start": "pnpm run build && node dist/src/index.js",
+    "seed": "pnpm run build && node dist/prisma/seed.js"
   },
   "dependencies": {
     "@prisma/client": "^5.16.2",
@@ -24,8 +26,6 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.12",
     "prisma": "^5.16.2",
-    "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
     "typescript": "^5.5.4"
   }
 }
