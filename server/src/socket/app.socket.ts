@@ -14,7 +14,7 @@ export function initSocket(httpServer: HttpServer) {
 
   // Handle socket connections
   io.on("connection", (socket) => {
-    handleConnection(socket, io); // No need to pass prisma or onlineUsers here
+    handleConnection(socket, io); 
   });
 
   return io;
