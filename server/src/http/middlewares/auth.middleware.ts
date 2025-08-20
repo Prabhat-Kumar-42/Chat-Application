@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import { verifyJwt } from "../../util/jwt-auth.util.js";
 import { AuthRequest } from "../types/auth-request.type.js";
 
