@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  lastSeenAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  messagesFrom Message[] @relation("messages_from")
+  messagesTo   Message[] @relation("messages_to")
+  participants ConversationParticipant[]
+}
+
+model Conversation {
+  id            String                     @id @default(cuid())
+  createdAt     DateTime                   @default(now())
+  updatedAt     DateTime                   @updatedAt
+  lastMessage   Message?                   @relation("LastMessage", fields: [lastMessageId], references: [id])
+  lastMessageId String?                    @unique
+
+  participants ConversationParticipant[]
+  messages     Message[]                  @relation("AllConversationMessages")
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversationId String
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+enum MessageStatus {
+  sent
+  delivered
+  read
+}
+
+model Message {
+  id             String        @id @default(cuid())
+  conversation   Conversation  @relation("AllConversationMessages", fields: [conversationId], references: [id])
+  conversationId String
+  from           User          @relation("messages_from", fields: [fromId], references: [id])
+  fromId         String
+  to             User          @relation("messages_to", fields: [toId], references: [id])
+  toId           String
+  body           String
+  status         MessageStatus @default(sent)
+  createdAt      DateTime      @default(now())
+  inConversationAsLastMessage Conversation? @relation("LastMessage")
+
+  @@index([conversationId])
+  @@index([toId, status])
+}
