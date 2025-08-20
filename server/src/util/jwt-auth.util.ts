@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { UserDto } from "../http/dtos/users.dto.js";
+import { UserDto } from "../dtos/users.dto.js";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
