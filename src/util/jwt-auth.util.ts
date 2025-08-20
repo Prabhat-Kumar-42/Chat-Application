@@ -1,0 +1,10 @@
+import jwt from "jsonwebtoken";
+import { UserDto } from "../dtos/users.dto";
+
+const JWT_SECRET = process.env.JWT_SECRET!;
+
+export const signJwt = (payload: UserDto) =>
+  jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+
+export const verifyJwt = (token: string) =>
+  jwt.verify(token, JWT_SECRET) as UserDto;
