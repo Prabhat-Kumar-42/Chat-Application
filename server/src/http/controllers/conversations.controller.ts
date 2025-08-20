@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { prisma } from "../db/db.js";
+import { prisma } from "../../db/db.js";
 import { AuthRequest } from "../types/auth-request.type.js";
 
 export const getOrCreate1to1Conversation = async (userA: string, userB: string) => {

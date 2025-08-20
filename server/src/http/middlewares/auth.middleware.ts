@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyJwt } from "../util/jwt-auth.util.js";
+import { verifyJwt } from "../../util/jwt-auth.util.js";
 import { AuthRequest } from "../types/auth-request.type.js";
 
 export const isAuthenticated = (

@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import { prisma } from "../db/db.js";
-import { signJwt } from "../util/jwt-auth.util.js";
+import { prisma } from "../../db/db.js";
+import { signJwt } from "../../util/jwt-auth.util.js";
 import { Request, Response } from "express";
 import { userToDto } from "../dtos/users.dto.js";
 import { loginSchema, registerSchema } from "../validations/user.validation.js";
