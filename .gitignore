@@ -1,3 +1,6 @@
 node_modules
 dist
 .env
+
+## will be removed in the future
+migrations
