@@ -6,7 +6,14 @@ import HomeScreen from "../screens/HomeScreen/HomeScreen";
 import ChatScreen from "../screens/ChatScreen/ChatScreen";
 import { AuthContext } from "../contexts/AuthContext";
 
-const Stack = createNativeStackNavigator();
+export type RootStackParamList = {
+  Login: undefined;
+  Register: undefined;
+  Home: undefined;
+  Chat: { otherId: string; otherName: string };
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   const { token } = useContext(AuthContext);

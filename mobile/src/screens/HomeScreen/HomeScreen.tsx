@@ -1,3 +1,4 @@
+// src/screens/HomeScreen.tsx
 import { useEffect } from "react";
 import { View, FlatList } from "react-native";
 import { fetchUsers } from "../../api/users.api";
@@ -5,11 +6,7 @@ import { useStore } from "../../store/index";
 import UserCard from "../../components/UserCard";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-type RootStackParamList = {
-  Home: undefined;
-  Chat: { otherId: string; otherName: string };
-};
+import { RootStackParamList } from "~/navigations/AppNavigator";
 
 export default function HomeScreen() {
   const users = useStore((s) => s.users);
