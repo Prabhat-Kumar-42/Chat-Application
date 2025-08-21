@@ -1,6 +1,6 @@
 // src/screens/ChatScreen.tsx
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, FlatList, KeyboardAvoidingView, Platform, Text } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { fetchConversationMessages } from '../../api/converstaions.api';
@@ -17,7 +17,8 @@ export default function ChatScreen() {
 
   const socket = useSocket();
   const me = useStore((s) => s.me)!;
-  const messages = useStore((s) => s.messages[otherId]) || [];
+  const allMessages = useStore((s) => s.messages);
+  const messages = useMemo(() => [...(allMessages[otherId] || [])], [allMessages, otherId]);
   const typingFrom = useStore((s) => s.typingFrom);
   const setMessagesFor = useStore((s) => s.setMessagesFor);
   const setTyping = useStore((s) => s.setTyping);
