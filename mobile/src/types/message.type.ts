@@ -1,7 +1,8 @@
 export enum MessageStatus {
   Sent = "sent",
   Delivered = "delivered",
-  Read = "read"
+  Read = "read",
+  Sending = "sending",
 }
 
 export type Message = {
