@@ -6,7 +6,7 @@ import { useStore } from "../../store/index";
 import Button from "../../components/Button";
 
 export default function LoginScreen({ navigation }: any) {
-  const [email, setEmail] = useState("alice@example.com");
+  const [email, setEmail] = useState("alan@example.com");
   const [password, setPassword] = useState("secret123");
   const auth = useContext(AuthContext);
   const setMe = useStore((s) => s.setMe);
@@ -25,10 +25,29 @@ export default function LoginScreen({ navigation }: any) {
   return (
     <View className="flex-1 justify-center p-6 bg-gray-50">
       <Text className="text-2xl font-bold mb-6">Login</Text>
-      <TextInput value={email} onChangeText={setEmail} placeholder="Email" keyboardType="email-address" className="w-full bg-white p-3 rounded-lg mb-4 border" />
-      <TextInput value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry className="w-full bg-white p-3 rounded-lg mb-6 border" />
+      <TextInput
+        value={email}
+        onChangeText={setEmail}
+        placeholder="Email"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        className="w-full bg-white p-3 rounded-lg mb-4 border"
+      />
+      <TextInput
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Password"
+        secureTextEntry
+        autoCapitalize="none"
+        className="w-full bg-white p-3 rounded-lg mb-6 border"
+      />
       <Button title="Login" onPress={submit} />
-      <Text className="text-blue-500 mt-4" onPress={() => navigation.navigate("Register")}>Create an account</Text>
+      <Text
+        className="text-blue-500 mt-4"
+        onPress={() => navigation.navigate("Register")}
+      >
+        Create an account
+      </Text>
     </View>
   );
 }

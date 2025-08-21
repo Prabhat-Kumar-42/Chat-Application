@@ -1,6 +1,5 @@
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { saveToken, getToken, clearToken } from "../utils/storage.util";
-import { login as apiLogin, register as apiRegister } from "../api/auth.api";
 import { useStore } from "../store/index";
 import { setAuthHeader } from "../utils/auth-header.util";
 
@@ -10,19 +9,21 @@ type AuthContextType = {
   logout: () => Promise<void>;
 };
 
-export const AuthContext = createContext<AuthContextType>({ setToken: async () => {}, logout: async () => {} });
+export const AuthContext = createContext<AuthContextType>({
+  setToken: async () => {},
+  logout: async () => {},
+});
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setTokenState] = useState<string | null>(null);
-  const setMe = useStore.getState().setMe;
+  const setMe = useStore((s) => s.setMe);
 
   useEffect(() => {
     (async () => {
       const t = await getToken();
-      if (t) {
+      if (t && t !== token) {
         setAuthHeader(t);
         setTokenState(t);
-        // optionally fetch profile endpoint to set `me`
       }
     })();
   }, []);
@@ -42,5 +43,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => setToken(null);
 
-  return <AuthContext.Provider value={{ token, setToken, logout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ token, setToken, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
