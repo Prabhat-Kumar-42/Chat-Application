@@ -11,7 +11,6 @@ import { useMessageStore } from '~/stores/message.store';
 import { useTypingStore } from '~/stores/typing.store';
 import { Message } from '~/types/message.type';
 
-
 export default function ChatScreen() {
   const route = useRoute<any>();
   const socket = useSocket(); // matches your original usage
@@ -28,18 +27,19 @@ export default function ChatScreen() {
 
   const [convId, setConvId] = useState<string | null>(null);
 
-// select only the messages list for this conversation
-  const messages = useMessageStore((s) => s.messages[otherId] ?? []);
+  // select only the messages list for this conversation
+  // ✅ Stable (reuses same empty array reference)
+  const EMPTY: Message[] = [];
+  const messages = useMessageStore((s) => s.messages[otherId] || EMPTY);
 
   const flatListRef = useRef<FlatList>(null);
 
   // Auto-scroll on messages change
   useEffect(() => {
-    console.log("🔄 Messages updated", { otherId, count: messages.length });
     if (messages.length > 0) {
       flatListRef.current?.scrollToEnd({ animated: true });
     }
-  }, [messages, otherId]);
+  }, [messages.length, otherId]);
 
   // Fetch conversation messages on mount (sets convId and store under otherId)
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function ChatScreen() {
       try {
         const { data } = await fetchConversationMessages(otherId);
         // NOTE: your API returns { conversationId, messages }
-        console.log("📩 API fetched messages", {
+        console.log('📩 API fetched messages', {
           otherId,
           convId: data.conversationId,
           count: data.messages?.length,
@@ -57,7 +57,7 @@ export default function ChatScreen() {
         // store messages under otherId so UI + socket merging works consistently
         setMessagesFor(otherId, data.messages || []);
       } catch (e) {
-        console.error("❌ fetch conv messages error", e);
+        console.error('❌ fetch conv messages error', e);
       }
     };
 
@@ -68,8 +68,8 @@ export default function ChatScreen() {
   useEffect(() => {
     if (!convId) return;
     if (messages.some((m) => m.fromId === otherId)) {
-      console.log("📖 Emitting message:read", { convId, otherId });
-      socket?.emit("message:read", { conversationId: convId });
+      console.log('📖 Emitting message:read', { convId, otherId });
+      socket?.emit('message:read', { conversationId: convId });
     }
   }, [messages.length, convId, otherId, socket]);
 
@@ -93,8 +93,7 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View className="flex-1 bg-white">
         {/* Header */}
         <View className="border-b border-gray-200 p-4">
@@ -106,21 +105,15 @@ export default function ChatScreen() {
           ref={flatListRef}
           data={messages}
           keyExtractor={(m: Message, idx) => m?.id ?? `msg-${idx}`}
-          renderItem={({ item }) =>
-            item ? <MessageBubble meId={me.id} m={item} /> : null
-          }
+          renderItem={({ item }) => (item ? <MessageBubble meId={me.id} m={item} /> : null)}
           contentContainerStyle={{ padding: 12 }}
-          onContentSizeChange={() =>
-            flatListRef.current?.scrollToEnd({ animated: true })
-          }
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
         />
 
         {/* Typing indicator */}
         {typingFrom[otherId] && (
-          <Text className="text-md text-gray-500 px-4 pb-2">
-            {otherName} is typing…
-          </Text>
+          <Text className="text-md px-4 pb-2 text-gray-500">{otherName} is typing…</Text>
         )}
 
         {/* Input box (convId passed so ChatInputBox can include it on emits) */}
