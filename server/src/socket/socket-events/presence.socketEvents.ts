@@ -20,7 +20,13 @@ export function handlePresence(
     io.emit("presence:update", { userId: user.id, status: "offline" });
   });
 
-  // On user connection (online)
   onlineUsers.addUser(user.id, socket.id); 
+  
+  // Send list of previously connected users to this socket only
+  const alreadyOnline = onlineUsers.getAllUsers().filter(id => id !== user.id);
+  console.log(`server side ${alreadyOnline}`)
+  socket.emit("presence:list", { onlineUsers: alreadyOnline });
+  
+  // On user connection (online)
   io.emit("presence:update", { userId: user.id, status: "online" });
 }
