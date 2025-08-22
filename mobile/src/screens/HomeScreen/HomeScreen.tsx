@@ -1,17 +1,18 @@
 // src/screens/HomeScreen.tsx
-import { useEffect } from "react";
-import { View, FlatList } from "react-native";
-import { fetchUsers } from "../../api/users.api";
-import { useStore } from "../../store/index";
-import UserCard from "../../components/UserCard";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from "~/navigations/AppNavigator";
+import { useEffect, useMemo } from 'react';
+import { View, FlatList } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { fetchUsers } from '../../api/users.api';
+import UserCard from '../../components/UserCard';
+import { useUserStore } from '~/stores/user.store';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '~/navigations/AppNavigator';
 
 export default function HomeScreen() {
-  const users = useStore((s) => s.users);
-  const setUsers = useStore((s) => s.setUsers);
-  const presence = useStore((s) => s.presence);
+  const users = useUserStore((s) => s.users);
+  const setUsers = useUserStore((s) => s.setUsers);
+  const presence = useUserStore((s) => s.presence);
+
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
@@ -20,21 +21,32 @@ export default function HomeScreen() {
         const { data } = await fetchUsers();
         setUsers(data);
       } catch (e) {
-        console.error("fetch users", e);
+        console.error('fetch users', e);
       }
     })();
-  }, []);
+  }, [setUsers]);
+
+  // Sort users: online first
+  const sortedUsers = useMemo(
+    () =>
+      [...users].sort((a, b) => {
+        const aOnline = presence[a.id] === 'online' ? 1 : 0;
+        const bOnline = presence[b.id] === 'online' ? 1 : 0;
+        return bOnline - aOnline; // online users first
+      }),
+    [users, presence]
+  );
 
   return (
     <View className="flex-1 bg-white">
       <FlatList
-        data={users}
+        data={sortedUsers}
         keyExtractor={(u) => u.id}
         renderItem={({ item }) => (
           <UserCard
             user={item}
             presence={presence[item.id]}
-            onPress={() => nav.navigate("Chat", { otherId: item.id, otherName: item.name })}
+            onPress={() => nav.navigate('Chat', { otherId: item.id, otherName: item.name })}
           />
         )}
       />
