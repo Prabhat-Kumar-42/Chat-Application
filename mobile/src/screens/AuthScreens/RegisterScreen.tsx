@@ -3,8 +3,8 @@ import { useState, useContext } from "react";
 import { View, Text, TextInput, Alert } from "react-native";
 import { register as apiRegister } from "../../api/auth.api";
 import { AuthContext } from "../../contexts/AuthContext";
-import { useStore } from "../../store/index";
 import Button from "../../components/Button";
+import { useUserStore } from "~/stores/user.store";
 
 
 export default function RegisterScreen({ navigation }: any) {
@@ -12,7 +12,7 @@ export default function RegisterScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const auth = useContext(AuthContext);
-  const setMe = useStore((s) => s.setMe);
+  const setMe = useUserStore((s) => s.setMe);
 
   const submit = async () => {
     try {

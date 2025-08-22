@@ -2,14 +2,14 @@ import { useState, useContext } from "react";
 import { View, Text, TextInput, Alert } from "react-native";
 import { login as apiLogin } from "../../api/auth.api";
 import { AuthContext } from "../../contexts/AuthContext";
-import { useStore } from "../../store/index";
 import Button from "../../components/Button";
+import { useUserStore } from "~/stores/user.store";
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("alan@example.com");
   const [password, setPassword] = useState("secret123");
   const auth = useContext(AuthContext);
-  const setMe = useStore((s) => s.setMe);
+  const setMe = useUserStore((s) => s.setMe);
 
   const submit = async () => {
     try {

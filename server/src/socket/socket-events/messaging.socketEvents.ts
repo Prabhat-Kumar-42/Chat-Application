@@ -34,7 +34,6 @@ export function handleMessaging(socket: AuthSocket, io: Server, user: UserDto, o
     await prisma.conversation.update({ where: { id: conv.id }, data: { lastMessageId: msg.id } });
 
     const full = msg;
-
     socket.emit("message:new", { ...full, tempId: payload.tempId });
     const toSocket = onlineUsers.getUserSocket(payload.to); 
     if (toSocket) io.to(toSocket).emit("message:new", full);
