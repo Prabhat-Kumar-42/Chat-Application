@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
 import { View, TextInput } from 'react-native';
-import { useStore } from '../store/index';
 import { MessageStatus } from '~/types/message.type';
 import { useSocket } from '~/contexts/SocketContexts';
 import Button from './Button';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid'; // for unique tempId
+import { useUserStore } from '~/stores/user.store';
+import { useMessageStore } from '~/stores/message.store';
 
 type Props = {
   convId: string | null;
@@ -14,8 +15,8 @@ type Props = {
 
 export default function ChatInputBox({ convId, otherId }: Props) {
   const socket = useSocket();
-  const me = useStore((s) => s.me)!;
-  const mergeMessage = useStore((s) => s.mergeMessage);
+  const me = useUserStore((s) => s.me)!;
+  const mergeMessage = useMessageStore((s) => s.mergeMessage);
 
   const [input, setInput] = useState('');
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -48,6 +49,12 @@ export default function ChatInputBox({ convId, otherId }: Props) {
     });
 
     setInput('');
+
+     if (typingTimeout.current) {
+      clearTimeout(typingTimeout.current);
+      typingTimeout.current = null;
+    }
+    socket.emit('typing:stop', { to: otherId });
   };
 
   const onTyping = (text: string) => {
