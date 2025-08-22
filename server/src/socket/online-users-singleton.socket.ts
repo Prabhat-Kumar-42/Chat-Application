@@ -31,8 +31,8 @@ export class OnlineUsers {
   }
 
   // Method to get all online users
-  public getAllUsers(): Map<string, string> {
-    return this.onlineUsersMap;
+  public getAllUsers(): string[] {
+    return Array.from(this.onlineUsersMap.keys());
   }
 }
 
