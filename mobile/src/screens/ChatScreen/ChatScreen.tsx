@@ -1,110 +1,100 @@
 // src/screens/ChatScreen.tsx
-
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, FlatList, KeyboardAvoidingView, Platform, Text } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { fetchConversationMessages } from '../../api/converstaions.api';
-import { useStore } from '../../store/index';
 import MessageBubble from '../../components/MessageBubble';
 import { useSocket } from '../../contexts/SocketContexts';
 import ChatInputBox from '../../components/ChatInput';
+import { useUserStore } from '~/stores/user.store';
+import { useMessageStore } from '~/stores/message.store';
+import { useTypingStore } from '~/stores/typing.store';
 import { Message } from '~/types/message.type';
+
 
 export default function ChatScreen() {
   const route = useRoute<any>();
-  const otherId = route.params.otherId as string;
-  const otherName = route.params.otherName as string;
+  const socket = useSocket(); // matches your original usage
 
-  const socket = useSocket();
-  const me = useStore((s) => s.me)!;
-  const allMessages = useStore((s) => s.messages);
-  const messages = useMemo(() => [...(allMessages[otherId] || [])], [allMessages, otherId]);
-  const typingFrom = useStore((s) => s.typingFrom);
-  const setMessagesFor = useStore((s) => s.setMessagesFor);
-  const setTyping = useStore((s) => s.setTyping);
-  const mergeMessage = useStore((s) => s.mergeMessage);
+  const rawOtherId = route.params?.otherId;
+  const otherName = route.params?.otherName as string;
+
+  // normalize id
+  const otherId = String(rawOtherId);
+
+  const me = useUserStore((s) => s.me);
+  const setMessagesFor = useMessageStore((s) => s.setMessagesFor);
+  const typingFrom = useTypingStore((s) => s.typingFrom);
 
   const [convId, setConvId] = useState<string | null>(null);
 
-  // FlatList ref
+// select only the messages list for this conversation
+  const messages = useMessageStore((s) => s.messages[otherId] ?? []);
+
   const flatListRef = useRef<FlatList>(null);
 
-  // Keep a ref for debounce timeout
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Auto-scroll when messages change
+  // Auto-scroll on messages change
   useEffect(() => {
+    console.log("🔄 Messages updated", { otherId, count: messages.length });
     if (messages.length > 0) {
       flatListRef.current?.scrollToEnd({ animated: true });
     }
-  }, [messages]);
+  }, [messages, otherId]);
 
-  // Fetch past messages when screen mounts
+  // Fetch conversation messages on mount (sets convId and store under otherId)
   useEffect(() => {
     const fetchMessages = async () => {
       try {
         const { data } = await fetchConversationMessages(otherId);
+        // NOTE: your API returns { conversationId, messages }
+        console.log("📩 API fetched messages", {
+          otherId,
+          convId: data.conversationId,
+          count: data.messages?.length,
+        });
+
         setConvId(data.conversationId);
+        // store messages under otherId so UI + socket merging works consistently
         setMessagesFor(otherId, data.messages || []);
       } catch (e) {
-        console.error('fetch conv messages', e);
+        console.error("❌ fetch conv messages error", e);
       }
     };
+
     if (otherId) fetchMessages();
-  }, [otherId]);
+  }, [otherId, setMessagesFor]);
 
-  // Emit read when new messages come in
+  // Read receipts: emit only when we have convId and there are messages from the other user
   useEffect(() => {
-    if (convId && socket && messages.some((m) => m.fromId === otherId)) {
-      socket.emit('message:read', { conversationId: convId });
+    if (!convId) return;
+    if (messages.some((m) => m.fromId === otherId)) {
+      console.log("📖 Emitting message:read", { convId, otherId });
+      socket?.emit("message:read", { conversationId: convId });
     }
-  }, [messages.length, convId, socket]);
+  }, [messages.length, convId, otherId, socket]);
 
-  // Listen to socket events
-  useEffect(() => {
-    if (!socket) return;
+  // Guards (same as your original)
+  if (!otherId || !otherName) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-gray-500">Invalid conversation</Text>
+      </View>
+    );
+  }
 
-    const handleMessageReceive = (msg: Message) => {
-      if (msg.fromId === otherId || msg.toId === otherId) {
-        mergeMessage(otherId, msg);
-      }
-    };
-
-    const handleTypingStart = ({ from }: { from: string }) => {
-      if (from === otherId) {
-        // show typing only if it's the person we are chatting with
-        setTyping(from, true);
-
-        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-
-        typingTimeoutRef.current = setTimeout(() => {
-          setTyping(from, false);
-        }, 1000);
-      }
-    };
-
-    const handleTypingStop = ({ from }: { from: string }) => {
-      if (from === otherId) {
-        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-        setTyping(from, false);
-      }
-    };
-
-    socket.on('message:new', handleMessageReceive);
-    socket.on('typing:start', handleTypingStart);
-    socket.on('typing:stop', handleTypingStop);
-
-    return () => {
-      socket.off('message:new', handleMessageReceive);
-      socket.off('typing:start', handleTypingStart);
-      socket.off('typing:stop', handleTypingStop);
-    };
-  }, [socket, otherId, convId, me.id]);
+  if (!me || !socket) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-gray-500">Loading chat…</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       <View className="flex-1 bg-white">
         {/* Header */}
         <View className="border-b border-gray-200 p-4">
@@ -115,19 +105,26 @@ export default function ChatScreen() {
         <FlatList
           ref={flatListRef}
           data={messages}
-          keyExtractor={(m: any) => m.id}
-          renderItem={({ item }) => <MessageBubble meId={me.id} m={item} />}
+          keyExtractor={(m: Message, idx) => m?.id ?? `msg-${idx}`}
+          renderItem={({ item }) =>
+            item ? <MessageBubble meId={me.id} m={item} /> : null
+          }
           contentContainerStyle={{ padding: 12 }}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: true })
+          }
           onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
         />
 
+        {/* Typing indicator */}
         {typingFrom[otherId] && (
-          <Text className="text-md text-gray-500"> {otherName} is typing…</Text>
+          <Text className="text-md text-gray-500 px-4 pb-2">
+            {otherName} is typing…
+          </Text>
         )}
 
-        {/* Input Box */}
-        <ChatInputBox convId={convId} otherId={otherId} />
+        {/* Input box (convId passed so ChatInputBox can include it on emits) */}
+        {me ? <ChatInputBox convId={convId} otherId={otherId} /> : null}
       </View>
     </KeyboardAvoidingView>
   );
